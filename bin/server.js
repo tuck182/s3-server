@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var knox = require('knox');
 var express = require('express');
 
