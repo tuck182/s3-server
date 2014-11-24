@@ -1,6 +1,6 @@
 {
   "name": "s3-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Serve the contents of a S3 bucket (private or public) over HTTP",
   "keywords": [
     "aws",
@@ -16,7 +16,7 @@
     "url": "http://ozan.io"
   },
   "bin": {
-    "s3-server": "./bin/aws-bucket-server.js"
+    "s3-server": "./bin/server.js"
   },
   "scripts": {
     "test": "exit 0"
