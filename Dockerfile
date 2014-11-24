@@ -11,7 +11,8 @@ RUN apt-get update
 RUN apt-get -y install nodejs nodejs-legacy npm
 
 # Install s3-server
-RUN npm install -g s3-server
+ADD . /opt/s3-server/
+RUN npm install --production
 
-# Run s3-server (assumes env params passed in)
-CMD s3-server
+# Run the server
+CMD node bin/server.js
