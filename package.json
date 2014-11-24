@@ -1,0 +1,43 @@
+{
+  "name": "s3-server",
+  "version": "0.1.0",
+  "description": "Serve the contents of a S3 bucket (private or public) over HTTP",
+  "keywords": [
+    "aws",
+    "s3",
+    "bucket",
+    "server"
+  ],
+  "main": "./bin/server.js",
+  "devDependencies": {},
+  "author": {
+    "name": "Ozan Turgut",
+    "email": "ozan@signalfuse.com",
+    "url": "http://ozan.io"
+  },
+  "bin": {
+    "s3-server": "./bin/aws-bucket-server.js"
+  },
+  "scripts": {
+    "test": "exit 0"
+  },
+  "licenses": [
+    {
+      "type": "Apache License 2.0",
+      "url": "https://github.com/signalfx/s3-server/blob/master/LICENSE-APACHE2"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/signalfx/s3-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/signalfx/s3-server/issues"
+  },
+  "homepage": "https://github.com/signalfx/s3-server",
+  "dependencies": {
+    "knox": "^0.9.1",
+    "express": "^4.10.2",
+    "minimist": "^1.1.0"
+  }
+}
