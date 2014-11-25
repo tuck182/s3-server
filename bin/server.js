@@ -21,17 +21,23 @@ var client = knox.createClient({
 var app = express();
 
 app.use(function(req, res, next){
+  console.log(req.path);
   client.get(req.path).on('response', function(awsRes){
     res.set(awsRes.headers);
+
     res.status(awsRes.statusCode);
     
-    awsRes.setEncoding('utf8');
+    //awsRes.setEncoding('utf8');
     awsRes.on('data', function(chunk){
       res.write(chunk);
     });
 
     res.on('end', function(){
       res.end();
+    });
+
+    res.on('error', function(err){
+      console.error(req.path, err);
     });
   }).end();
 });
