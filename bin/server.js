@@ -21,7 +21,6 @@ var client = knox.createClient({
 var app = express();
 
 app.use(function(req, res, next){
-  console.log(req.path);
   client.get(req.path).on('response', function(awsRes){
     res.set(awsRes.headers);
 
