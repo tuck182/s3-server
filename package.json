@@ -1,6 +1,6 @@
 {
   "name": "s3-server",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Serve the contents of a S3 bucket (private or public) over HTTP",
   "keywords": [
     "aws",
@@ -36,8 +36,9 @@
   },
   "homepage": "https://github.com/signalfx/s3-server",
   "dependencies": {
-    "knox": "^0.9.1",
     "express": "^4.10.2",
-    "minimist": "^1.1.0"
+    "minimist": "^1.1.0",
+    "aws-sdk": "^2.0.31",
+    "mustache": "^0.8.2"
   }
 }
