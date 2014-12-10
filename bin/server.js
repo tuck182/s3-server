@@ -74,7 +74,7 @@ app.use(function(req, res, next){
   if(path === '' || path.slice(-1) === '/'){
     loadPrefixes(path, function(err, data){
       if(err) {
-        console.err(err);
+        console.error(err);
         res.status(err.statusCode);
         res.write(err);
         res.end();
