@@ -21,7 +21,11 @@ var client = knox.createClient({
 var app = express();
 
 app.use(function(req, res, next){
-  client.get(req.path).on('response', function(awsRes){
+  var path = req.path;
+  
+  if(path.slice(-1) === '/') path += 'index.html';
+  
+  client.get(path).on('response', function(awsRes){
     res.set(awsRes.headers);
 
     res.status(awsRes.statusCode);
