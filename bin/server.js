@@ -73,6 +73,14 @@ app.use(function(req, res, next){
   
   if(path === '' || path.slice(-1) === '/'){
     loadPrefixes(path, function(err, data){
+      if(err) {
+        console.err(err);
+        res.status(err.statusCode);
+        res.write(err);
+        res.end();
+        return;
+      };
+
       if(data.Contents.length){
         var indexPath;
         data.Contents.some(function(obj){
