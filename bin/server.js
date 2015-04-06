@@ -33,7 +33,7 @@ function loadPrefixes(prefix, callback){
     Delimiter: '/',
     EncodingType: 'url',
     Prefix: prefix
-  }, callback); 
+  }, callback);
 }
 
 function serve(path, res){
@@ -53,6 +53,10 @@ function serve(path, res){
       'Etag': data.ETag,
       'Content-Encoding': data.ContentEncoding,
       'Content-Type': data.ContentType,
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Host,Content-*',
+      'Access-Control-Max-Age': '3000'
     });
 
     res.write(data.Body);
@@ -70,7 +74,7 @@ function serveList(prefixes, res){
 
 app.use(function(req, res, next){
   var path = req.path.substr(1);
-  
+
   if(path === '' || path.slice(-1) === '/'){
     loadPrefixes(path, function(err, data){
       if(err) {
