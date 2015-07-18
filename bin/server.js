@@ -27,7 +27,6 @@ if (key) {
   });
 }
 
-endpoint = endpoint && new AWS.Endpoint(endpoint);
 var s3 = new AWS.S3({endpoint: endpoint});
 
 var app = express();
