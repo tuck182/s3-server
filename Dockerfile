@@ -7,8 +7,7 @@ ENV DEBIAN_FRONTEND noninteractive
 WORKDIR /opt/s3-server/
 
 # Install node
-RUN apt-get update
-RUN apt-get -y install nodejs nodejs-legacy npm
+RUN apk-install nodejs
 
 # Install s3-server
 ADD . /opt/s3-server/
