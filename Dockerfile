@@ -1,4 +1,4 @@
-FROM quay.io/signalfuse/maestro-base:14.04-0.1.8.1
+FROM quay.io/signalfuse/maestro-base:alp-3.2
 
 MAINTAINER Ozan Turgut <ozan@signalfuse.com>
 
