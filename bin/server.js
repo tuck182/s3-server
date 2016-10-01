@@ -19,10 +19,13 @@ var port = argv.p || argv.port || process.env.S3_SERVER_PORT || 3010;
 
 console.log('Serving ' + bucket + ' on port ' + port);
 
-AWS.config.update({
-  accessKeyId: key,
-  secretAccessKey: secret
-});
+if (key) {
+  AWS.config.update({
+    accessKeyId: key,
+    secretAccessKey: secret
+  });
+}
+
 var s3 = new AWS.S3();
 
 var app = express();
