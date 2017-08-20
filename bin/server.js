@@ -22,6 +22,7 @@ var key = argv.key || process.env.AWS_ACCESS_KEY_ID;
 var secret = argv.secret || process.env.AWS_SECRET_ACCESS_KEY;
 var endpoint = argv.endpoint || process.env.AWS_ENDPOINT;
 var port = argv.p || argv.port || process.env.S3_SERVER_PORT || 3010;
+let basepath = argv.basepath || process.env.BASEPATH || '/';
 
 let options = {};
 
@@ -113,7 +114,12 @@ function serveList(prefixes, res){
 }
 
 app.use(function(req, res, next){
-  var path = req.path.substr(1);
+  let path;
+  if (req.path.startsWith(basepath)) {
+    path = req.path.substr(basepath.length);
+  } else {
+    path = req.path.substr(1);
+  }
 
   if(path === '' || path.slice(-1) === '/'){
     loadPrefixes(path, function(err, data){
