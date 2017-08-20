@@ -5,6 +5,11 @@ var AWS = require('aws-sdk');
 var argv = require('minimist')(process.argv.slice(2));
 var path = require('path');
 var fs = require('fs');
+const leftPad = require('left-pad');
+const https = require('https');
+const http = require('http');
+
+
 var Mustache = require('mustache');
 
 // Load the list html
@@ -15,18 +20,29 @@ Mustache.parse(listHtml);
 var bucket = argv.bucket || process.env.S3_SERVER_BUCKET;
 var key = argv.key || process.env.AWS_ACCESS_KEY_ID;
 var secret = argv.secret || process.env.AWS_SECRET_ACCESS_KEY;
+var endpoint = argv.endpoint || process.env.AWS_ENDPOINT;
 var port = argv.p || argv.port || process.env.S3_SERVER_PORT || 3010;
 
-console.log('Serving ' + bucket + ' on port ' + port);
+let options = {};
 
-if (key) {
-  AWS.config.update({
-    accessKeyId: key,
-    secretAccessKey: secret
-  });
+try {
+  options = {
+    privateKey: fs.readFileSync(argv.privateKey, 'utf8'),
+    certificate: fs.readFileSync(argv.certificate, 'utf8')
+  };
+} catch (e) {
+  // nothing
 }
 
-var s3 = new AWS.S3();
+var s3 = new AWS.S3({
+  accessKeyId: key,
+  secretAccessKey: secret,
+  // The endpoint must be s3.scality.test, else SSL will not work
+  endpoint: endpoint,
+  sslEnabled: true,
+  // With this setup, you must use path-style bucket access
+  s3ForcePathStyle: true,
+});
 
 var app = express();
 
@@ -35,12 +51,15 @@ function loadPrefixes(prefix, callback){
     Bucket: bucket,
     Delimiter: '/',
     EncodingType: 'url',
-    Prefix: prefix
+    Prefix: prefix,
   }, callback);
 }
 
 function serve(path, res){
-  s3.getObject({ Bucket: bucket, Key: path }, function(err, data){
+  s3.getObject({
+    Bucket: bucket,
+    Key: path,
+  }, function(err, data){
     if(err){
       res.status(err.statusCode);
       res.end();
@@ -68,8 +87,26 @@ function serve(path, res){
 }
 
 function serveList(prefixes, res){
+  const out = prefixes.map((i) => {
+    const a = i.LastModified;
+    let key = i.Key;
+    let spaces = '';
+    if (key.length >= 50) {
+      key = key.slice(0,47)+'..>';
+    } else {
+      key = i.Key
+      spaces = Array(50-i.Key.length).fill(' ').join('');
+    }
+    return {
+      Url: i.Key,
+      Key: key,
+      Spaces: spaces,
+      LastModified: `${leftPad(a.getDate(), 2, '0')}-${leftPad(a.getMonth(), 2, '0')}-${a.getFullYear()} ${leftPad(a.getHours(), 2, '0')}:${leftPad(a.getMinutes(), 2, '0')}`,
+      Size: Array(20-(""+i.Size).length).fill(' ').join('')+i.Size
+    };
+  });
   res.write(Mustache.render(listHtml, {
-    prefixes: prefixes,
+    prefixes: out,
     s3Bucket: bucket
   }));
   res.end();
@@ -100,10 +137,10 @@ app.use(function(req, res, next){
         if(indexPath) {
           serve(indexPath, res);
         } else {
-          serveList(data.CommonPrefixes, res);
+          serveList(data.Contents, res);
         }
       } else {
-        serveList(data.CommonPrefixes, res);
+        serveList(data.Contents, res);
       }
     });
   } else {
@@ -111,4 +148,12 @@ app.use(function(req, res, next){
   }
 });
 
-app.listen(port);
+let httpServer = null;
+if (options.privateKey) {
+  httpServer = https.createServer(options, app);
+  console.log(`Listen on: https ${port}`);
+} else {
+  httpServer = http.createServer(app);
+  console.log(`Listen on: http ${port}`);
+}
+httpServer.listen(port);
