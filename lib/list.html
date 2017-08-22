@@ -3,11 +3,11 @@
     <title>S3 Server</title>
   </head>
   <body>
-    <H1>Index of {{ }}</H1>
+    <H1>Index of {{prefix}}</H1>
     <HR>
     <pre>
 {{#prefixes}}
-<a href="/{{Url}}">{{Key}}</a>{{Spaces}} {{LastModified}} {{Size}}
+<a href="{{Url}}">{{Key}}</a>{{Spaces}} {{LastModified}} {{Size}}
 {{/prefixes}}
     </pre>
   </body>

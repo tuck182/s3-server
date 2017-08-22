@@ -48,12 +48,44 @@ var s3 = new AWS.S3({
 var app = express();
 
 function loadPrefixes(prefix, callback){
+  let result = { 
+    Prefix: prefix,
+    Contents: [], 
+    CommonPrefixes: [{ Prefix: ".." }] 
+  };
+
+  function s3ListCallback(error, data) {
+    if (error) return callback(error);
+
+    let out = [];
+    for (let i in data) {
+      out.push(i);
+    }
+    //console.log(data);
+    result.Contents = result.Contents.concat(data.Contents);
+    result.CommonPrefixes = result.CommonPrefixes.concat(data.CommonPrefixes);
+
+    if (data.IsTruncated) {
+      const req = {
+        Bucket: bucket,
+        //EncodingType: 'url',
+        Delimiter: '/',
+        Prefix: prefix,
+        Marker: data.Contents[data.Contents.length-1].Key
+      };
+      // console.log(req);
+      s3.listObjects(req, s3ListCallback)
+    } else {
+      callback(null, result);
+    }
+  }
+
   s3.listObjects({
     Bucket: bucket,
+    //EncodingType: 'url',
     Delimiter: '/',
-    EncodingType: 'url',
-    Prefix: prefix,
-  }, callback);
+    Prefix: prefix
+  }, s3ListCallback);
 }
 
 function serve(path, res){
@@ -88,15 +120,37 @@ function serve(path, res){
 }
 
 function serveList(prefixes, res){
-  const out = prefixes.map((i) => {
-    const a = i.LastModified;
-    let key = i.Key;
+  //console.log(prefixes.Prefix);
+  const out = prefixes.CommonPrefixes.map((i) => {
+    const a = new Date();
+    let key = i.Prefix;
+    let url = i.Prefix;
+    if (i.Prefix != '..') {
+      key = i.Prefix.substr(prefixes.Prefix.length);
+      url = key;
+    } 
     let spaces = '';
     if (key.length >= 50) {
       key = key.slice(0,47)+'..>';
     } else {
-      key = i.Key
-      spaces = Array(50-i.Key.length).fill(' ').join('');
+      spaces = Array(50-key.length).fill(' ').join('');
+    }
+    return {
+      Url: url,
+      Key: key,
+      Spaces: spaces,
+      LastModified: `${leftPad(a.getDate(), 2, '0')}-${leftPad(a.getMonth(), 2, '0')}-${a.getFullYear()} ${leftPad(a.getHours(), 2, '0')}:${leftPad(a.getMinutes(), 2, '0')}`,
+      Size: Array(19).fill(' ').join('')+'-'
+    };
+  }).concat(prefixes.Contents.map((i) => {
+    const a = i.LastModified;
+    let key = i.Key.substr(prefixes.Prefix.length);
+    //console.log(prefixes.Prefix, key, i);
+    let spaces = '';
+    if (key.length >= 50) {
+      key = key.slice(0,47)+'..>';
+    } else {
+      spaces = Array(50-key.length).fill(' ').join('');
     }
     return {
       Url: i.Key,
@@ -105,8 +159,9 @@ function serveList(prefixes, res){
       LastModified: `${leftPad(a.getDate(), 2, '0')}-${leftPad(a.getMonth(), 2, '0')}-${a.getFullYear()} ${leftPad(a.getHours(), 2, '0')}:${leftPad(a.getMinutes(), 2, '0')}`,
       Size: Array(20-(""+i.Size).length).fill(' ').join('')+i.Size
     };
-  });
+  }));
   res.write(Mustache.render(listHtml, {
+    prefix: prefixes.Prefix,
     prefixes: out,
     s3Bucket: bucket
   }));
@@ -114,14 +169,17 @@ function serveList(prefixes, res){
 }
 
 app.use(function(req, res, next){
-  let path;
+  let path = req.path;
   if (req.path.startsWith(basepath)) {
     path = req.path.substr(basepath.length);
-  } else {
-    path = req.path.substr(1);
-  }
+  } 
+  //console.log(`[${req.path}] [${path}]`);
 
-  if(path === '' || path.slice(-1) === '/'){
+  if (path.endsWith('/')) {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
+    //console.log('ENDSWITH', path);
     loadPrefixes(path, function(err, data){
       if(err) {
         console.error(err);
@@ -143,10 +201,10 @@ app.use(function(req, res, next){
         if(indexPath) {
           serve(indexPath, res);
         } else {
-          serveList(data.Contents, res);
+          serveList(data, res);
         }
       } else {
-        serveList(data.Contents, res);
+        serveList(data, res);
       }
     });
   } else {
