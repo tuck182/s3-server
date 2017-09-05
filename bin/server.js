@@ -16,6 +16,7 @@ var bucket = argv.bucket || process.env.S3_SERVER_BUCKET;
 var key = argv.key || process.env.AWS_ACCESS_KEY_ID;
 var secret = argv.secret || process.env.AWS_SECRET_ACCESS_KEY;
 var port = argv.p || argv.port || process.env.S3_SERVER_PORT || 3010;
+const prefix = argv.prefix || process.env.S3_KEY_PREFIX || "";
 
 console.log('Serving ' + bucket + ' on port ' + port);
 
@@ -38,6 +39,7 @@ function loadPrefixes(prefix, callback){
     Prefix: prefix
   }, callback);
 }
+
 
 function serve(path, res){
   s3.getObject({ Bucket: bucket, Key: path }, function(err, data){
@@ -76,7 +78,7 @@ function serveList(prefixes, res){
 }
 
 app.use(function(req, res, next){
-  var path = req.path.substr(1);
+  var path = prefix + req.path.substr(1);
 
   if(path === '' || path.slice(-1) === '/'){
     loadPrefixes(path, function(err, data){
