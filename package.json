@@ -1,6 +1,6 @@
 {
   "name": "s3-server",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Serve the contents of a S3 bucket (private or public) over HTTP",
   "keywords": [
     "aws",
@@ -12,8 +12,8 @@
   "devDependencies": {},
   "author": {
     "name": "Ozan Turgut",
-    "email": "ozan@signalfuse.com",
-    "url": "http://ozan.io"
+    "email": "ozan@signalfx.com",
+    "url": "http://unsetbit.com"
   },
   "bin": {
     "s3-server": "./bin/server.js"
