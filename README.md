@@ -15,6 +15,7 @@ S3 Server is a proxy server which streams resources from an S3 bucket over HTTP.
 * `--key` parameter or `AWS_ACCESS_KEY_ID` environment variable. Required.
 * `--secret` parameter or `AWS_SECRET_ACCESS_KEY` environment variable. Required.
 * `--bucket` parameter or `S3_SERVER_BUCKET` environment variable. Required.
+* `--endpoint` parameter or `S3_SERVER_ENDPOINT` environment variable. Required.
 * `--port` parameter or `S3_SERVER_PORT` environment variable. Optional, defaults to 3010.
 
 

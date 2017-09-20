@@ -12,6 +12,7 @@ var listHtmlFile = path.resolve(__dirname, '../lib/list.html');
 var listHtml = fs.readFileSync(listHtmlFile).toString();
 Mustache.parse(listHtml);
 
+var endpoint = argv.endpoint || process.env.S3_SERVER_ENDPOINT;
 var bucket = argv.bucket || process.env.S3_SERVER_BUCKET;
 var key = argv.key || process.env.AWS_ACCESS_KEY_ID;
 var secret = argv.secret || process.env.AWS_SECRET_ACCESS_KEY;
@@ -26,7 +27,7 @@ if (key) {
   });
 }
 
-var s3 = new AWS.S3();
+var s3 = new AWS.S3({endpoint: endpoint});
 
 var app = express();
 
