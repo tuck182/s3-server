@@ -5,6 +5,8 @@ var AWS = require('aws-sdk');
 var argv = require('minimist')(process.argv.slice(2));
 var path = require('path');
 var fs = require('fs');
+var http = require('http');
+var https = require('https');
 var Mustache = require('mustache');
 
 // Load the list html
@@ -17,6 +19,15 @@ var bucket = argv.bucket || process.env.S3_SERVER_BUCKET;
 var key = argv.key || process.env.AWS_ACCESS_KEY_ID;
 var secret = argv.secret || process.env.AWS_SECRET_ACCESS_KEY;
 var port = argv.p || argv.port || process.env.S3_SERVER_PORT || 3010;
+var securePort = argv.securePort || process.env.S3_SERVER_SECURE_PORT || 3020;
+var securePassphrase = argv.securePassphrase || process.env.S3_SERVER_SECURE_PASSPHRASE;
+
+var privateKey, certificate;
+if (process.env.S3_SERVER_SECURE_KEY_FILE || argv.secureKey) {
+  privateKey  = fs.readFileSync(argv.secureKey || process.env.S3_SERVER_SECURE_KEY_FILE, 'utf8');
+  certificate = fs.readFileSync(argv.secureCert || process.env.S3_SERVER_SECURE_CERT_FILE, 'utf8');
+}
+
 const prefix = argv.prefix || process.env.S3_KEY_PREFIX || "";
 
 console.log('Serving ' + bucket + ' on port ' + port);
@@ -114,4 +125,13 @@ app.use(function(req, res, next){
   }
 });
 
-app.listen(port);
+http.createServer(app).listen(port);
+
+if (privateKey) {
+  var credentials = {key: privateKey, cert: certificate};
+  if (securePassphrase) {
+    credentials.passphrase = securePassphrase;
+  }
+
+  https.createServer(credentials, app).listen(securePort);
+}
