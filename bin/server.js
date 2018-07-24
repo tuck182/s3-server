@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+var R = require('ramda');
 var express = require('express');
 var AWS = require('aws-sdk');
 var argv = require('minimist')(process.argv.slice(2));
 var path = require('path');
+var escapeStringRegexp = require('escape-string-regexp');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
@@ -81,10 +83,33 @@ function serve(path, res){
   });
 }
 
-function serveList(prefixes, res){
+function createBreadcrumbs(bucket, path) {
+  let fullPath = [];
+  var result = R.flatten([bucket, path.replace(/\/$/, '').split('/')]).map(p => {
+    fullPath.push(p);
+    var href = fullPath.length > 1 ? `/${R.drop(1, fullPath).join('/')}/` : '/';
+    return {
+      Href: href,
+      Name: p,
+    };
+  });
+  if (result.length > 0) {
+    result[result.length-1].last = true;
+  }
+  return result;
+}
+
+function serveList(path, files, subdirectories, res){
+  files.forEach((f) =>
+    f.Name = f.Key.replace(new RegExp(`^${escapeStringRegexp(path)}`), ''));
+  subdirectories.forEach((f) =>
+    f.Name = f.Prefix.replace(new RegExp(`^${escapeStringRegexp(path)}`), ''));
   res.write(Mustache.render(listHtml, {
-    prefixes: prefixes,
-    s3Bucket: bucket
+    breadcrumbs: createBreadcrumbs(bucket, path),
+    files: files,
+    subdirectories: subdirectories,
+    s3Bucket: bucket,
+    path: path,
   }));
   res.end();
 }
@@ -114,10 +139,10 @@ app.use(function(req, res, next){
         if(indexPath) {
           serve(indexPath, res);
         } else {
-          serveList(data.CommonPrefixes, res);
+          serveList(path, data.Contents, data.CommonPrefixes, res);
         }
       } else {
-        serveList(data.CommonPrefixes, res);
+        serveList(path, [], data.CommonPrefixes, res);
       }
     });
   } else {
